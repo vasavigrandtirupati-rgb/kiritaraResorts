@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronDown, Play, Shield, TrendingUp, Award, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { siteData } from '@/data/siteData.js';
 import heroImage from '@/assets/hero-resort.jpg';
 
-export const Hero: React.FC = () => {
+interface HeroProps {
+  content?: {
+    title?: string;
+    subtitle?: string;
+    description?: string;
+    primaryCTA?: { text: string };
+    secondaryCTA?: { text: string };
+    features?: string[];
+  };
+}
+
+export const Hero: React.FC<HeroProps> = ({ content }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -77,25 +87,25 @@ export const Hero: React.FC = () => {
 
           {/* Main Heading */}
           <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-            <span className="block">{siteData.hero.title.split(' ').slice(0, 2).join(' ')}</span>
+            <span className="block">{content?.title?.split(' ').slice(0, 2).join(' ') || 'Exclusive Investment'}</span>
             <span className="block text-gradient-gold">
-              {siteData.hero.title.split(' ').slice(2).join(' ')}
+              {content?.title?.split(' ').slice(2).join(' ') || 'Opportunities'}
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-xl md:text-2xl mb-4 text-gray-200 font-light max-w-3xl mx-auto">
-            {siteData.hero.subtitle}
+            {content?.subtitle || 'Discover Premium Resort Properties'}
           </p>
 
           {/* Description */}
           <p className="text-lg md:text-xl mb-8 text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            {siteData.hero.description}
+            {content?.description || 'Join the elite circle of investors in luxury resort properties.'}
           </p>
 
           {/* Feature Highlights */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 max-w-2xl mx-auto">
-            {siteData.hero.features.map((feature, index) => (
+            {(content?.features || ['High ROI', 'Premium Locations', 'Luxury Amenities', 'Expert Management']).map((feature, index) => (
               <div 
                 key={feature}
                 className={`p-4 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 transform transition-all duration-1000 ${
@@ -122,7 +132,7 @@ export const Hero: React.FC = () => {
               onClick={scrollToInvestments}
             >
               <TrendingUp className="w-5 h-5 mr-2" />
-              {siteData.hero.primaryCTA.text}
+              {content?.primaryCTA?.text || 'Explore Opportunities'}
             </Button>
             <Button 
               variant="outline"
@@ -131,7 +141,7 @@ export const Hero: React.FC = () => {
               onClick={scrollToContact}
             >
               <Play className="w-5 h-5 mr-2" />
-              {siteData.hero.secondaryCTA.text}
+              {content?.secondaryCTA?.text || 'Schedule Consultation'}
             </Button>
           </div>
 

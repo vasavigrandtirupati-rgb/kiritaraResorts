@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Eye, EyeOff, Save, Upload, Users, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Save, Users, BarChart3, Settings, LogOut, Upload, Eye, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,69 +7,63 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { siteData, adminConfig } from '@/data/siteData.js';
+import { useAuth } from '@/hooks/useAuth';
+import { useSiteContent } from '@/hooks/useSiteContent';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AdminPanel: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
-  const [editableContent, setEditableContent] = useState<any>({});
+  const { user, signOut, isAdmin } = useAuth();
+  const { siteContent, updateContent } = useSiteContent();
   const [submissions, setSubmissions] = useState<any[]>([]);
+  const [editableContent, setEditableContent] = useState<any>({});
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if already authenticated
-    const isLoggedIn = localStorage.getItem('kiritara-admin-auth') === 'true';
-    setIsAuthenticated(isLoggedIn);
+    // Load submissions from Supabase
+    const fetchSubmissions = async () => {
+      if (!isAdmin) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('contact_submissions')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-    // Load submissions
-    const savedSubmissions = JSON.parse(localStorage.getItem('kiritara-submissions') || '[]');
-    setSubmissions(savedSubmissions);
+        if (error) throw error;
+        setSubmissions(data || []);
+      } catch (error) {
+        console.error('Error fetching submissions:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load submissions",
+          variant: "destructive"
+        });
+      }
+    };
 
-    // Load editable content
-    const savedContent = JSON.parse(localStorage.getItem('kiritara-content') || '{}');
-    setEditableContent({ ...siteData, ...savedContent });
-  }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+    fetchSubmissions();
     
-    if (credentials.username === adminConfig.credentials.username && 
-        credentials.password === adminConfig.credentials.password) {
-      setIsAuthenticated(true);
-      localStorage.setItem('kiritara-admin-auth', 'true');
+    // Set editable content from database
+    setEditableContent(siteContent);
+  }, [isAdmin, siteContent, toast]);
+
+  const handleSaveContent = async (key: string, value: any) => {
+    const result = await updateContent(key, value);
+    if (result.success) {
       toast({
-        title: "Login Successful",
-        description: "Welcome to the Kiritara Admin Panel",
+        title: "Content Saved",
+        description: "Your changes have been saved successfully",
       });
     } else {
       toast({
-        title: "Login Failed",
-        description: "Invalid username or password",
+        title: "Save Failed",
+        description: "Failed to save changes. Please try again.",
         variant: "destructive"
       });
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('kiritara-admin-auth');
-    setCredentials({ username: '', password: '' });
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out",
-    });
-  };
-
-  const saveContent = () => {
-    localStorage.setItem('kiritara-content', JSON.stringify(editableContent));
-    toast({
-      title: "Content Saved",
-      description: "Your changes have been saved successfully",
-    });
-  };
-
-  const updateContent = (path: string, value: string) => {
+  const updateLocalContent = (path: string, value: string) => {
     const keys = path.split('.');
     const newContent = { ...editableContent };
     let current = newContent;
@@ -87,57 +81,28 @@ export const AdminPanel: React.FC = () => {
     return path.split('.').reduce((current, key) => current && current[key], obj) || '';
   };
 
-  if (!isAuthenticated) {
+  // Redirect if not admin
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background">
         <Card className="w-full max-w-md luxury-shadow">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-gradient-gold rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="font-display text-2xl">Admin Access</CardTitle>
-            <p className="text-muted-foreground">Kiritara Resorts Management</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  value={credentials.username}
-                  onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
-                  placeholder="Enter username"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={credentials.password}
-                    onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
-                    placeholder="Enter password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-              
-              <Button type="submit" className="btn-luxury w-full">
-                <Lock className="w-4 h-4 mr-2" />
-                Access Admin Panel
-              </Button>
-            </form>
+          <CardContent className="p-8 text-center">
+            <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
+            <p className="text-muted-foreground">Please log in to access the admin panel.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background">
+        <Card className="w-full max-w-md luxury-shadow">
+          <CardContent className="p-8 text-center">
+            <h3 className="text-lg font-semibold mb-2">Admin Access Required</h3>
+            <p className="text-muted-foreground mb-4">You don't have permission to access this area.</p>
+            <p className="text-sm text-muted-foreground">Current user: {user.email}</p>
           </CardContent>
         </Card>
       </div>
@@ -155,11 +120,7 @@ export const AdminPanel: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button onClick={saveContent} className="btn-luxury">
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </Button>
-            <Button variant="outline" onClick={handleLogout}>
+            <Button variant="outline" onClick={signOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
@@ -184,26 +145,36 @@ export const AdminPanel: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {adminConfig.editableFields.map((field) => (
+                {['hero.title', 'hero.subtitle', 'hero.description', 'about.title', 'about.description', 'contact.title', 'contact.description'].map((field) => (
                   <div key={field} className="space-y-2">
                     <Label htmlFor={field} className="font-medium">
                       {field.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' → ')}
                     </Label>
-                    {field.includes('description') ? (
-                      <Textarea
-                        id={field}
-                        value={getNestedValue(editableContent, field)}
-                        onChange={(e) => updateContent(field, e.target.value)}
-                        rows={3}
-                        className="resize-none"
-                      />
-                    ) : (
-                      <Input
-                        id={field}
-                        value={getNestedValue(editableContent, field)}
-                        onChange={(e) => updateContent(field, e.target.value)}
-                      />
-                    )}
+                    <div className="flex space-x-2">
+                      {field.includes('description') ? (
+                        <Textarea
+                          id={field}
+                          value={getNestedValue(editableContent, field)}
+                          onChange={(e) => updateLocalContent(field, e.target.value)}
+                          rows={3}
+                          className="resize-none flex-1"
+                        />
+                      ) : (
+                        <Input
+                          id={field}
+                          value={getNestedValue(editableContent, field)}
+                          onChange={(e) => updateLocalContent(field, e.target.value)}
+                          className="flex-1"
+                        />
+                      )}
+                      <Button 
+                        onClick={() => handleSaveContent(field.split('.')[0], editableContent[field.split('.')[0]])}
+                        className="btn-luxury"
+                        size="sm"
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </CardContent>
@@ -229,15 +200,14 @@ export const AdminPanel: React.FC = () => {
                         <CardContent className="p-4">
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
-                              <h4 className="font-semibold text-lg">{submission.fullName}</h4>
+                              <h4 className="font-semibold text-lg">{submission.name}</h4>
                               <p className="text-muted-foreground">{submission.email}</p>
                               <p className="text-muted-foreground">{submission.phone}</p>
                             </div>
                             <div>
-                              <p><strong>Investment:</strong> {submission.investmentAmount}</p>
-                              <p><strong>Timeline:</strong> {submission.timeline}</p>
+                              <p><strong>Investment:</strong> {submission.investment_interest}</p>
                               <p className="text-sm text-muted-foreground">
-                                {new Date(submission.timestamp).toLocaleDateString()}
+                                {new Date(submission.created_at).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
@@ -295,7 +265,7 @@ export const AdminPanel: React.FC = () => {
                     <div>
                       <p className="text-muted-foreground">This Month</p>
                       <p className="text-2xl font-bold">
-                        {submissions.filter(s => new Date(s.timestamp).getMonth() === new Date().getMonth()).length}
+                        {submissions.filter(s => new Date(s.created_at).getMonth() === new Date().getMonth()).length}
                       </p>
                     </div>
                     <BarChart3 className="w-8 h-8 text-primary" />
@@ -309,7 +279,7 @@ export const AdminPanel: React.FC = () => {
                     <div>
                       <p className="text-muted-foreground">High Value Leads</p>
                       <p className="text-2xl font-bold">
-                        {submissions.filter(s => s.investmentAmount.includes('$5M+')).length}
+                        {submissions.filter(s => s.investment_interest?.includes('$5M+')).length}
                       </p>
                     </div>
                     <BarChart3 className="w-8 h-8 text-primary" />

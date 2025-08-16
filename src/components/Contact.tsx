@@ -7,7 +7,18 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { siteData } from '@/data/siteData.js';
+import { supabase } from '@/integrations/supabase/client';
+
+interface ContactProps {
+  content?: {
+    title?: string;
+    subtitle?: string;
+    description?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+  };
+}
 
 interface FormData {
   fullName: string;
@@ -18,7 +29,7 @@ interface FormData {
   message: string;
 }
 
-export const Contact: React.FC = () => {
+export const Contact: React.FC<ContactProps> = ({ content }) => {
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
@@ -56,19 +67,19 @@ export const Contact: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call - in production, this would be a real API endpoint
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Store in localStorage for demo purposes
-      const existingSubmissions = JSON.parse(localStorage.getItem('kiritara-submissions') || '[]');
-      const newSubmission = {
-        ...formData,
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        status: 'pending'
-      };
-      
-      localStorage.setItem('kiritara-submissions', JSON.stringify([...existingSubmissions, newSubmission]));
+      // Save to Supabase
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert({
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          investment_interest: `${formData.investmentAmount} - ${formData.timeline}`,
+          status: 'new'
+        });
+
+      if (error) throw error;
       
       setIsSubmitted(true);
       toast({
@@ -87,6 +98,7 @@ export const Contact: React.FC = () => {
       });
       
     } catch (error) {
+      console.error('Error submitting form:', error);
       toast({
         title: "Submission Error",
         description: "Please try again or contact us directly.",
@@ -108,15 +120,15 @@ export const Contact: React.FC = () => {
           </div>
           
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            {siteData.contact.title}
+            {content?.title || 'Get In Touch'}
           </h2>
           
           <p className="text-xl text-muted-foreground mb-4 max-w-3xl mx-auto">
-            {siteData.contact.subtitle}
+            {content?.subtitle || 'Ready to explore exclusive investment opportunities?'}
           </p>
           
           <p className="text-lg text-muted-foreground max-w-4xl mx-auto">
-            {siteData.contact.description}
+            {content?.description || 'Our team is here to guide you through premium resort investments.'}
           </p>
         </div>
 
@@ -134,10 +146,10 @@ export const Contact: React.FC = () => {
               <CardContent>
                 <p className="text-muted-foreground mb-2">Speak with our specialists</p>
                 <a 
-                  href={`tel:${siteData.contact.phone}`}
+                  href={`tel:${content?.phone || '+1 (555) 123-4567'}`}
                   className="text-lg font-semibold text-primary hover:underline"
                 >
-                  {siteData.contact.phone}
+                  {content?.phone || '+1 (555) 123-4567'}
                 </a>
               </CardContent>
             </Card>
@@ -152,10 +164,10 @@ export const Contact: React.FC = () => {
               <CardContent>
                 <p className="text-muted-foreground mb-2">Investment inquiries</p>
                 <a 
-                  href={`mailto:${siteData.contact.email}`}
+                  href={`mailto:${content?.email || 'invest@kiritara.com'}`}
                   className="text-lg font-semibold text-primary hover:underline break-all"
                 >
-                  {siteData.contact.email}
+                  {content?.email || 'invest@kiritara.com'}
                 </a>
               </CardContent>
             </Card>
@@ -169,7 +181,7 @@ export const Contact: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-2">Visit our headquarters</p>
-                <p className="text-lg font-semibold">{siteData.contact.address}</p>
+                <p className="text-lg font-semibold">{content?.address || '123 Resort Boulevard, Paradise City, PC 12345'}</p>
               </CardContent>
             </Card>
 
@@ -195,7 +207,7 @@ export const Contact: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Send className="w-5 h-5 mr-3 text-primary" />
-                  {siteData.contact.form.title}
+                  Investment Inquiry Form
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -253,7 +265,7 @@ export const Contact: React.FC = () => {
                           <SelectValue placeholder="Select investment range" />
                         </SelectTrigger>
                         <SelectContent>
-                          {siteData.contact.form.fields.find(f => f.name === 'investmentAmount')?.options?.map((option) => (
+                          {['$100K - $500K', '$500K - $1M', '$1M - $5M', '$5M+'].map((option) => (
                             <SelectItem key={option} value={option}>{option}</SelectItem>
                           ))}
                         </SelectContent>
@@ -269,7 +281,7 @@ export const Contact: React.FC = () => {
                         <SelectValue placeholder="Select your timeline" />
                       </SelectTrigger>
                       <SelectContent>
-                        {siteData.contact.form.fields.find(f => f.name === 'timeline')?.options?.map((option) => (
+                        {['Immediate (0-3 months)', 'Short-term (3-12 months)', 'Medium-term (1-3 years)', 'Long-term (3+ years)'].map((option) => (
                           <SelectItem key={option} value={option}>{option}</SelectItem>
                         ))}
                       </SelectContent>

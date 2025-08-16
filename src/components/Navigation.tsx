@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
-import { siteData } from '@/data/siteData.js';
+import { useAuth } from '@/hooks/useAuth';
 
 export const Navigation: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,17 +49,23 @@ export const Navigation: React.FC = () => {
             </div>
             <div>
               <h1 className="font-display font-bold text-xl text-foreground">
-                {siteData.brand.name}
+                Kiritara Resorts
               </h1>
               <p className="text-xs text-muted-foreground hidden sm:block">
-                {siteData.brand.tagline}
+                Luxury Investment Opportunities
               </p>
             </div>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            {siteData.navigation.links.map((link) => (
+            {[
+              { name: 'Home', href: '#hero', active: true },
+              { name: 'Investments', href: '#investments', active: false },
+              { name: 'Gallery', href: '#gallery', active: false },
+              { name: 'About', href: '#about', active: false },
+              { name: 'Contact', href: '#contact', active: false },
+            ].map((link) => (
               <button
                 key={link.name}
                 onClick={() => scrollToSection(link.href)}
@@ -74,6 +82,31 @@ export const Navigation: React.FC = () => {
           {/* Actions */}
           <div className="flex items-center space-x-4">
             <ThemeToggle />
+            
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground hidden md:block">
+                  {user.email}
+                </span>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={signOut}
+                  className="hidden md:flex"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Link to="/auth">
+                <Button className="btn-luxury hidden md:flex">
+                  <User className="w-4 h-4 mr-2" />
+                  Login
+                </Button>
+              </Link>
+            )}
+            
             <Button 
               className="btn-luxury hidden md:flex"
               onClick={() => scrollToSection('#contact')}
@@ -93,12 +126,17 @@ export const Navigation: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         <div className={`lg:hidden transition-all duration-300 ${
           isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         } overflow-hidden`}>
           <div className="py-4 space-y-2 border-t border-border">
-            {siteData.navigation.links.map((link) => (
+            {[
+              { name: 'Home', href: '#hero', active: true },
+              { name: 'Investments', href: '#investments', active: false },
+              { name: 'Gallery', href: '#gallery', active: false },
+              { name: 'About', href: '#about', active: false },
+              { name: 'Contact', href: '#contact', active: false },
+            ].map((link) => (
               <button
                 key={link.name}
                 onClick={() => scrollToSection(link.href)}
@@ -109,7 +147,29 @@ export const Navigation: React.FC = () => {
                 {link.name}
               </button>
             ))}
-            <div className="pt-4 border-t border-border">
+            <div className="pt-4 border-t border-border space-y-2">
+              {user ? (
+                <>
+                  <div className="px-4 py-2 text-sm text-muted-foreground">
+                    {user.email}
+                  </div>
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    onClick={signOut}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Link to="/auth" className="block">
+                  <Button className="btn-luxury w-full">
+                    <User className="w-4 h-4 mr-2" />
+                    Login
+                  </Button>
+                </Link>
+              )}
               <Button 
                 className="btn-luxury w-full"
                 onClick={() => scrollToSection('#contact')}

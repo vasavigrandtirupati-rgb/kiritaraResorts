@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { X, ZoomIn, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { siteData } from '@/data/siteData.js';
 import gallery1 from '@/assets/gallery-1.jpg';
 import gallery2 from '@/assets/gallery-2.jpg';
 import gallery3 from '@/assets/gallery-3.jpg';
@@ -19,17 +18,31 @@ const imageMap: Record<string, string> = {
   '/src/assets/gallery-6.jpg': gallery6,
 };
 
-export const Gallery: React.FC = () => {
+interface GalleryProps {
+  images?: Array<{
+    id?: string;
+    title: string;
+    image_url: string;
+    description?: string;
+    sort_order?: number;
+  }>;
+}
+
+export const Gallery: React.FC<GalleryProps> = ({ images = [] }) => {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>('All');
   const [visibleImages, setVisibleImages] = useState<number[]>([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  const categories = ['All', ...Array.from(new Set(siteData.gallery.images.map(img => img.category)))];
+  // Transform database images to match expected format
+  const galleryImages = images.map(img => ({
+    src: img.image_url,
+    alt: img.title,
+    category: 'Resort'
+  }));
 
-  const filteredImages = filter === 'All' 
-    ? siteData.gallery.images 
-    : siteData.gallery.images.filter(img => img.category === filter);
+  const categories = ['All', 'Resort'];
+  const filteredImages = filter === 'All' ? galleryImages : galleryImages;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -105,11 +118,11 @@ export const Gallery: React.FC = () => {
           </div>
           
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            {siteData.gallery.title}
+            Exclusive Resort Gallery
           </h2>
           
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            {siteData.gallery.subtitle}
+            Explore our collection of premium resort properties and luxury destinations
           </p>
         </div>
 

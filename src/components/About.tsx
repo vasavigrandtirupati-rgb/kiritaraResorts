@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, MapPin, Settings, Star, Users, TrendingUp, Award, Shield } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { siteData } from '@/data/siteData.js';
 
-export const About: React.FC = () => {
+interface AboutProps {
+  content?: {
+    title?: string;
+    subtitle?: string;
+    description?: string;
+    features?: string[];
+  };
+}
+
+export const About: React.FC<AboutProps> = ({ content }) => {
   const [visibleStats, setVisibleStats] = useState<number[]>([]);
   const [visibleFeatures, setVisibleFeatures] = useState<number[]>([]);
 
@@ -74,21 +82,26 @@ export const About: React.FC = () => {
           </div>
           
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            {siteData.about.title}
+            {content?.title || 'About Kiritara Resorts'}
           </h2>
           
           <p className="text-xl text-muted-foreground mb-4 max-w-3xl mx-auto">
-            {siteData.about.subtitle}
+            {content?.subtitle || 'Luxury Resort Investment Specialists'}
           </p>
           
           <p className="text-lg text-muted-foreground max-w-4xl mx-auto">
-            {siteData.about.description}
+            {content?.description || 'Kiritara Resorts represents the pinnacle of luxury resort development and investment opportunities.'}
           </p>
         </div>
 
         {/* Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          {siteData.about.stats.map((stat, index) => (
+          {[
+            { number: '50+', label: 'Resort Properties' },
+            { number: '2.1B+', label: 'Assets Under Management' },
+            { number: '1000+', label: 'Satisfied Investors' },
+            { number: '22%', label: 'Average Annual Returns' }
+          ].map((stat, index) => (
             <Card 
               key={stat.label}
               data-type="stat"
@@ -118,7 +131,12 @@ export const About: React.FC = () => {
 
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {siteData.about.features.map((feature, index) => (
+          {[
+            { title: 'Premium Locations', description: 'Exclusive resort properties in the world\'s most desirable destinations', icon: 'map-pin' },
+            { title: 'Luxury Amenities', description: 'World-class facilities and services that define luxury hospitality', icon: 'star' },
+            { title: 'High ROI', description: 'Consistent returns with growth potential in the luxury resort market', icon: 'trophy' },
+            { title: 'Expert Management', description: 'Professional resort management with decades of industry experience', icon: 'settings' }
+          ].map((feature, index) => (
             <Card 
               key={feature.title}
               data-type="feature"
