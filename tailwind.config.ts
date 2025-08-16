@@ -52,6 +52,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				luxury: {
+					silver: 'hsl(var(--luxury-silver))',
+					white: 'hsl(var(--luxury-white))',
+					gold: 'hsl(var(--luxury-gold))',
+					'gold-dark': 'hsl(var(--luxury-gold-dark))',
+					charcoal: 'hsl(var(--luxury-charcoal))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -62,6 +69,21 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
+			},
+			fontFamily: {
+				display: ['Playfair Display', 'serif'],
+				sans: ['Inter', 'sans-serif']
+			},
+			backgroundImage: {
+				'gradient-gold': 'var(--gradient-gold)',
+				'gradient-silver': 'var(--gradient-silver)',
+				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-overlay': 'var(--gradient-overlay)'
+			},
+			boxShadow: {
+				luxury: 'var(--shadow-luxury)',
+				gold: 'var(--shadow-gold)',
+				inner: 'var(--shadow-inner)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +106,49 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				float: {
+					'0%, 100%': { transform: 'translateY(0px)' },
+					'50%': { transform: 'translateY(-20px)' }
+				},
+				'luxury-pulse': {
+					'0%, 100%': { 
+						boxShadow: '0 0 0 0 rgba(255, 215, 0, 0.7)',
+						transform: 'scale(1)' 
+					},
+					'50%': { 
+						boxShadow: '0 0 0 20px rgba(255, 215, 0, 0)',
+						transform: 'scale(1.05)' 
+					}
+				},
+				slideUp: {
+					from: {
+						opacity: '0',
+						transform: 'translateY(50px)'
+					},
+					to: {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				fadeInUp: {
+					from: {
+						opacity: '0',
+						transform: 'translateY(30px)'
+					},
+					to: {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				float: 'float 6s ease-in-out infinite',
+				'luxury-pulse': 'luxury-pulse 3s ease-in-out infinite',
+				'slide-up': 'slideUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards',
+				'fade-in-up': 'fadeInUp 1s cubic-bezier(0.23, 1, 0.32, 1) forwards'
 			}
 		}
 	},
