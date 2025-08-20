@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Users, BarChart3, Settings, LogOut, Upload, Eye, Filter } from 'lucide-react';
+import { GalleryManager } from './GalleryManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -235,11 +236,7 @@ export const AdminPanel: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Gallery management will be available in the next update</p>
-                  <p className="text-sm text-muted-foreground mt-2">Currently using pre-loaded resort images</p>
-                </div>
+                <GalleryManager />
               </CardContent>
             </Card>
           </TabsContent>

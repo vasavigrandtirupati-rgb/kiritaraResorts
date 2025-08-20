@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown, User, LogOut } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 export const Navigation: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,6 +88,14 @@ export const Navigation: React.FC = () => {
                 <span className="text-sm text-muted-foreground hidden md:block">
                   {user.email}
                 </span>
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="secondary" size="sm" className="hidden md:flex">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
                 <Button 
                   variant="outline"
                   size="sm"
@@ -153,6 +161,14 @@ export const Navigation: React.FC = () => {
                   <div className="px-4 py-2 text-sm text-muted-foreground">
                     {user.email}
                   </div>
+                  {isAdmin && (
+                    <Link to="/admin" className="block">
+                      <Button variant="secondary" className="w-full mb-2">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Admin Panel
+                      </Button>
+                    </Link>
+                  )}
                   <Button 
                     variant="outline"
                     className="w-full"
